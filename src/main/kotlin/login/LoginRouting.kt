@@ -16,13 +16,25 @@ fun Application.configureLoginRouting() {
     routing {
         post("/login") {
             val receive = call.receive<LoginReceiveRemote>()
+
+            // Проверка на пустые поля
+            if (receive.email.isBlank() || receive.password.isBlank()) {
+                call.respond(HttpStatusCode.BadRequest, "Email и пароль не должны быть пустыми")
+                return@post
+            }
+
+            // Проверка email формата
+            if (!receive.email.contains("@") || !receive.email.contains(".")) {
+                call.respond(HttpStatusCode.BadRequest, "Неверный формат почты")
+                return@post
+            }
+
             val userDTO = Users.fetchUser(receive.email)
 
-            if (userDTO == null){
-                call.respond(HttpStatusCode.BadRequest, "User Not Found")
-            }
-            else{
-                if (userDTO.password == receive.password){
+            if (userDTO == null) {
+                call.respond(HttpStatusCode.BadRequest, "Пользователь не найден")
+            } else {
+                if (userDTO.password == receive.password) {
                     val token = UUID.randomUUID().toString()
                     Tokens.insert(
                         TokenDTO(
@@ -32,9 +44,8 @@ fun Application.configureLoginRouting() {
                         )
                     )
                     call.respond(LoginResponseRemote(token))
-                }
-                else{
-                    call.respond(HttpStatusCode.BadRequest, "Invalid Password")
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "Неверный пароль")
                 }
             }
         }

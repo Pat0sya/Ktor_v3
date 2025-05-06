@@ -18,11 +18,25 @@ fun Application.configureRegistrationRouting() {
         post("/registration") {
             val receive = call.receive<RegistrationReceiveRemote>()
 
-            val userDTO = Users.fetchUser(receive.email)
-            if (userDTO != null){
-                call.respond(HttpStatusCode.Conflict, "User already exist")
+            // Проверка на пустые поля
+            if (receive.email.isBlank() || receive.password.isBlank() ||
+                receive.firstName.isBlank() || receive.secondName.isBlank()
+            ) {
+                call.respond(HttpStatusCode.BadRequest, "Все поля обязательны для заполнения")
+                return@post
             }
-            else{
+
+            // Проверка формата email
+            val emailRegex = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+\$".toRegex()
+            if (!receive.email.matches(emailRegex)) {
+                call.respond(HttpStatusCode.BadRequest, "Неверный формат почты")
+                return@post
+            }
+
+            val userDTO = Users.fetchUser(receive.email)
+            if (userDTO != null) {
+                call.respond(HttpStatusCode.Conflict, "Пользователь уже существует")
+            } else {
                 val token = UUID.randomUUID().toString()
                 try {
                     Users.insert(
@@ -33,10 +47,11 @@ fun Application.configureRegistrationRouting() {
                             secondName = receive.secondName
                         )
                     )
-                }
-                catch (e: Exception){
+                } catch (e: Exception) {
                     call.respond(HttpStatusCode.Conflict, e.toString())
+                    return@post
                 }
+
                 Tokens.insert(
                     TokenDTO(
                         rowId = UUID.randomUUID().toString(),
