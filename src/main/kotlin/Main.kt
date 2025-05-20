@@ -1,5 +1,6 @@
 package com.project
 
+import Balance.configureBalanceRouting
 import Transactions.transactionRouting
 import Users.userRouting
 import com.project.login.configureLoginRouting
@@ -28,5 +29,6 @@ fun Application.module() {
     configureUserRouting()
     transactionRouting()
     userRouting()
+    configureBalanceRouting()
 
 }
