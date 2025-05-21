@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TransactionDTO(
-    val id: Int = 0,
-    val userEmail: String,
+    val senderEmail: String,      // This is camelCase
+    val recipientEmail: String,   // This is camelCase
     val amount: Int,
     val description: String,
-    val timestamp: Long  // Keep as Long for API compatibility
+    val timestamp: Long
 )
