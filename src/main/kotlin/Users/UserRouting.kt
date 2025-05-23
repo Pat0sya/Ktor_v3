@@ -22,7 +22,11 @@ data class UserResponseDTO(
     val firstName: String,
     val secondName: String
 )
-
+@Serializable
+data class UserUpdateRequest(
+    val firstName: String,
+    val secondName: String
+)
 fun Application.userRouting() {
 routing {
     get("/users") {
@@ -38,5 +42,22 @@ routing {
         call.respond(users)
 
     }
+    put("/users/{email}") {
+        val email = call.parameters["email"]
+        if (email == null) {
+            call.respond(HttpStatusCode.BadRequest, "Email не указан")
+            return@put
+        }
+
+        val updateRequest = call.receive<UserUpdateRequest>()
+        val success = Users.updateUser(email, updateRequest.firstName, updateRequest.secondName)
+
+        if (success) {
+            call.respond(HttpStatusCode.OK, "Профиль обновлен")
+        } else {
+            call.respond(HttpStatusCode.NotFound, "Пользователь не найден")
+        }
+    }
 }
 }
+

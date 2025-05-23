@@ -4,6 +4,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 object Users : Table("users") {
     val firstName = varchar("firstname", 25)
@@ -38,5 +39,15 @@ object Users : Table("users") {
             null
         }
     }
+    fun updateUser(email: String, newFirstName: String, newSecondName: String): Boolean {
+        return transaction {
+            val updated = Users.update({ Users.email eq email }) {
+                it[firstName] = newFirstName
+                it[secondName] = newSecondName
+            }
+            updated > 0
+        }
+    }
+
 
 }

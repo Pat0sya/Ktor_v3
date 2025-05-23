@@ -10,7 +10,7 @@ import io.ktor.http.*
 fun Application.contactAndBalanceRouting() {
     routing {
 
-        // ✅ Добавление пользователя в контакты
+
         post("/contacts/add") {
             val request = call.receive<ContactDTO>()
             if (request.ownerEmail == request.contactEmail) {
@@ -20,6 +20,32 @@ fun Application.contactAndBalanceRouting() {
             ContactDAO.addContact(request.ownerEmail, request.contactEmail)
             call.respond(HttpStatusCode.OK, "Пользователь добавлен в контакты")
         }
+        delete("/contacts/remove") { // Matches the client's URL
+            try {
+                val request = call.receive<ContactDTO>() // Or use ContactDTO if structure matches
+                // Basic validation
+                if (request.ownerEmail.isBlank() || request.contactEmail.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, "ownerEmail and contactEmail cannot be blank.")
+                    return@delete
+                }
+
+                val success = ContactDAO.deleteContact(request.ownerEmail, request.contactEmail)
+
+                if (success) {
+                    call.respond(HttpStatusCode.OK, "Контакт успешно удален")
+                } else {
+                    // This could mean the contact was not found to be deleted,
+                    // or some other DB error. 404 might be appropriate if the specific contact link didn't exist.
+                    call.respond(HttpStatusCode.NotFound, "Контакт не найден или не удалось удалить")
+                }
+            } catch (e: ContentTransformationException) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid request body: ${e.localizedMessage}")
+            } catch (e: Exception) {
+                application.log.error("Error deleting contact: ${e.localizedMessage}", e)
+                call.respond(HttpStatusCode.InternalServerError, "Ошибка на сервере при удалении контакта")
+            }
+        }
+
 
         // ✅ Получение списка контактов пользователя
         get("/contacts") {
