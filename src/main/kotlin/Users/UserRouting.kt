@@ -50,7 +50,7 @@ routing {
         }
 
         val updateRequest = call.receive<UserUpdateRequest>()
-        val success = Users.updateUser(email, updateRequest.firstName, updateRequest.secondName)
+        val success = Users.updateUserProfile(email, updateRequest.firstName, updateRequest.secondName)
 
         if (success) {
             call.respond(HttpStatusCode.OK, "Профиль обновлен")

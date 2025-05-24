@@ -39,13 +39,13 @@ object Users : Table("users") {
             null
         }
     }
-    fun updateUser(email: String, newFirstName: String, newSecondName: String): Boolean {
+    fun updateUserProfile(email: String, firstName: String, secondName: String): Boolean {
         return transaction {
-            val updated = Users.update({ Users.email eq email }) {
-                it[firstName] = newFirstName
-                it[secondName] = newSecondName
+            val updatedRows = Users.update({ Users.email eq email }) {
+                it[Users.firstName] = firstName
+                it[Users.secondName] = secondName
             }
-            updated > 0
+            updatedRows > 0
         }
     }
 
